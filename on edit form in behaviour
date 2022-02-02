@@ -1,0 +1,45 @@
+import com.atlassian.jira.component.ComponentAccessor;
+import com.atlassian.jira.user.util.UserManager;
+import com.atlassian.jira.user.ApplicationUser;
+import com.onresolve.jira.groovy.user.FormField;
+import com.onresolve.scriptrunner.runner.customisers.WithPlugin
+import com.onresolve.scriptrunner.runner.customisers.PluginModule
+import com.riadalabs.jira.plugins.insight.channel.external.api.facade.ObjectFacade
+import com.riadalabs.jira.plugins.insight.channel.external.api.facade.ObjectTypeFacade
+import com.riadalabs.jira.plugins.insight.channel.external.api.facade.ObjectTypeAttributeFacade
+import com.riadalabs.jira.plugins.insight.channel.external.api.facade.IQLFacade
+
+def issueManager = ComponentAccessor.getIssueManager()
+def jiraAuthenticationContext = ComponentAccessor.jiraAuthenticationContext
+
+@WithPlugin('com.riadalabs.jira.plugins.insight')
+@PluginModule ObjectFacade objectFacade
+@PluginModule ObjectTypeFacade objectTypeFacade
+@PluginModule ObjectTypeAttributeFacade objectTypeAttributeFacade
+@PluginModule IQLFacade iqlFacade
+
+//UserManager userManager = ComponentAccessor.getUserManager();
+ApplicationUser adminUser = ComponentAccessor.getUserManager().getUserByName("jiraAdmin")
+ApplicationUser loggedInUser = jiraAuthenticationContext.getLoggedInUser()
+String summaryID = "summary"
+String descrptionID = "description"
+FormField fieldSummary = getFieldById(summaryID)
+FormField fielddescrption = getFieldById(descrptionID)
+FormField assignmentGroup = getFieldByName("Assignment Group")
+
+FormField editFF = getFieldById("Edit")
+if("Update".equals(editFF?.formValue)){
+    def insightUserObj = iqlFacade.findObjectsByIQLAndSchema(25,'"Key" IN ("' + assignmentGroup.getValue() + '") AND objectType IN ("Groups")')
+    if(insightUserObj.name[0].toString() in ['TestAssignmentGroupJIRA', 'HC RCA Production Support', 'CCVCOMEngineering' , 'CCVCOMEngineering' , 'CRS Support' , 'HC RCA Production Support Incidents' , 'HC RCA Production Support AdHoc' , 'AOE-Support']) 
+    {
+    if(loggedInUser ? ComponentAccessor.groupManager.isUserInGroup(loggedInUser, insightUserObj.name[0].toString()) : false){
+        assignmentGroup.setDescription("${insightUserObj.name[0]}")
+         fieldSummary.setHidden(false);
+         fielddescrption.setHidden(false)
+    }
+    }
+    else{
+        fieldSummary.setHidden(true);
+        fielddescrption.setHidden(true)
+}    
+}
