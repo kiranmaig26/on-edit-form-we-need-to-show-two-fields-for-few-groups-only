@@ -1,0 +1,16 @@
+//moving the attachments from subtask to parent 
+
+import com.atlassian.jira.component.ComponentAccessor
+import com.atlassian.jira.issue.AttachmentManager
+import com.atlassian.jira.issue.Issue
+import com.atlassian.jira.issue.attachment.Attachment
+import com.atlassian.jira.user.ApplicationUser
+
+ApplicationUser currentUser = ComponentAccessor.getJiraAuthenticationContext().getLoggedInUser()
+Issue parentIssue = issue.getParentObject()
+AttachmentManager attachmentManager = ComponentAccessor.getAttachmentManager()
+Collection<Attachment> attachments = issue.getAttachments()
+
+attachments.each{
+    attachmentManager.copyAttachment(it, currentUser, parentIssue.getKey())
+}
